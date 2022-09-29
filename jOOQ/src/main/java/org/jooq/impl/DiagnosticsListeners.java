@@ -44,6 +44,8 @@ import org.jooq.DiagnosticsContext;
 import org.jooq.DiagnosticsListener;
 import org.jooq.DiagnosticsListenerProvider;
 
+import java.util.stream.Stream;
+
 /**
  * @author Lukas Eder
  */
@@ -56,7 +58,21 @@ final class DiagnosticsListeners implements DiagnosticsListener {
     }
 
     static final DiagnosticsListeners get(Configuration configuration) {
-        return new DiagnosticsListeners(configuration.diagnosticsListenerProviders());
+        var providers = Stream.<DiagnosticsListenerProvider>builder();
+        for (var provider : configuration.diagnosticsListenerProviders()) {
+            providers.accept(provider);
+        }
+
+        if (serviceLoadingEnabled()) {
+            // Cyclic dependency here between this class & the new Provider.
+            // Would need more thought to resolve this, if needed.
+            providers.accept(new ServiceLoaderDiagnosticsListenerProvider());
+        }
+        return new DiagnosticsListeners(providers.build().toArray(DiagnosticsListenerProvider[]::new));
+    }
+
+    private static boolean serviceLoadingEnabled() {
+        return true; // TODO a real impl, if needed
     }
 
     @Override

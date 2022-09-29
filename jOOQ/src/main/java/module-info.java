@@ -92,4 +92,8 @@ module org.jooq {
     exports org.jooq.util.postgres;
     exports org.jooq.util.sqlite;
     exports org.jooq.util.yugabytedb;
+
+    // Hook into ServiceLoader
+    //  see https://stackoverflow.com/a/45813229
+    uses org.jooq.DiagnosticsListener;
 }
